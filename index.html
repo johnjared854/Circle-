@@ -83,6 +83,7 @@ nav button{flex:1;background:none;color:var(--mu);border-radius:0;padding:12px 0
 <input type="file" id="pf" accept="image/*" hidden><input type="file" id="vf" accept=".vcf,.csv,.txt,text/*" hidden>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>')</script>
 <script>
 // ====== PASTE YOUR SUPABASE VALUES HERE (Project Settings > API) ======
 const SUPABASE_URL='https://azfjieojghmtsavmzced.supabase.co';
@@ -183,9 +184,12 @@ async function onSession(s){
  loadPosts();subM();
  S.channel('live').on('postgres_changes',{event:'*',schema:'public',table:'posts'},loadPosts).on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadP).subscribe();
 }
+const oops=m=>{if(!document.querySelector('section:not([hidden])')){show('auth');amsg('Error: '+m)}};
+window.addEventListener('error',e=>oops(e.message));window.addEventListener('unhandledrejection',e=>oops(e.reason&&e.reason.message||e.reason));
 (function(){
  if(SUPABASE_URL.startsWith('PASTE')){show('auth');return amsg('Setup needed: paste your Supabase URL and key at the top of index.html.')}
- S=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ if(!window.supabase){show('auth');return amsg('Couldn’t load the sign-in library. Try another network, then reload.')}
+ try{S=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){show('auth');return amsg('Error: '+e.message)}
  let last=null;S.auth.onAuthStateChange((ev,s)=>{const k=s?.user?.id||null;if(k===last&&ev!=='SIGNED_OUT')return;last=k;onSession(s)});
 })();
 </script></body></html>
