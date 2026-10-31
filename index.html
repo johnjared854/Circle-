@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Circle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--tx:#14171a;--mu:#6b7280;--ac:#4f46e5;--ln:#e5e7eb;--me:#e0e7ff;color-scheme:light;padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#1a1d24;--tx:#eceef2;--mu:#9aa1ad;--ac:#818cf8;--ln:#2a2e38;--me:#2b2f55;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+header{padding:14px 16px;font-weight:700;font-size:20px}
+section{max-width:640px;margin:0 auto;padding:0 12px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:12px;margin:0 0 12px}
+.hd{display:flex;align-items:center;gap:8px}.hd small{color:var(--mu);margin-left:auto}
+.av{width:34px;height:34px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+article p{margin:8px 0;white-space:pre-wrap;word-break:break-word}
+article img,.pv img{max-width:100%;border-radius:10px;display:block;margin-top:6px}
+textarea,input,select{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:10px;margin-top:8px}
+textarea{resize:vertical;min-height:64px;margin:0}
+button{font:inherit;border:0;border-radius:10px;padding:9px 14px;background:var(--ac);color:#fff;cursor:pointer}
+button.g{background:var(--bg);color:var(--tx);border:1px solid var(--ln)}
+button.lk{background:none;color:var(--mu);padding:4px 8px;margin-left:auto}.ft button.lk{margin:0}
+.row{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}.row>input{flex:1;min-width:0;margin:0}
+.seg{display:flex;gap:6px;margin-top:8px}.seg button{flex:1;background:var(--bg);color:var(--mu);border:1px solid var(--ln)}.seg button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.m{color:var(--mu);text-align:center;padding:20px 0}.note{color:var(--mu);font-size:14px;margin:8px 0 0}
+#msgs{height:calc(100vh - 250px);min-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:6px 0}
+.b{max-width:80%;padding:8px 12px;border-radius:14px;background:var(--card);border:1px solid var(--ln);word-break:break-word;white-space:pre-wrap}
+.b small{display:block;color:var(--mu);font-size:12px}.b.me{align-self:flex-end;background:var(--me)}
+.pr{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--ln)}.pr:first-of-type{border-top:0}.pr div{flex:1;min-width:0}.pr small{color:var(--mu);display:block}
+h3{margin:14px 0 6px;font-size:15px;color:var(--mu)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;color:var(--mu);border-radius:0;padding:12px 0}nav button.on{color:var(--ac);font-weight:700}
+.out nav{display:none}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:#111;color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;display:none;max-width:90%}
+</style></head>
+<body class="out">
+<header>◉ Circle</header>
+
+<section id="auth" hidden>
+ <div class="card"><b>Welcome to Circle</b>
+  <div class="seg" id="s-ch"><button data-v="email" class="on">Email</button><button data-v="phone">Phone</button></div>
+  <div class="seg" id="s-md"><button data-v="in" class="on">Log in</button><button data-v="up">Sign up</button></div>
+  <div class="seg" id="s-pw"><button data-v="1" class="on">Password</button><button data-v="0">Code</button></div>
+  <input id="id" autocomplete="username" placeholder="you@example.com">
+  <input id="pw" type="password" autocomplete="current-password" placeholder="Password (6+ characters)">
+  <input id="otp" inputmode="numeric" placeholder="Enter the code we sent" hidden>
+  <div class="row"><button data-a="go">Continue</button></div>
+  <p class="note" id="amsg"></p>
+  <p class="note">Phone numbers need the country code, e.g. +2348012345678.</p></div>
+</section>
+
+<section id="feed" hidden>
+ <div class="card"><textarea id="txt" placeholder="What’s happening?" maxlength="1000"></textarea>
+  <div class="pv" id="pv"></div>
+  <div class="row"><button class="g" data-a="photo">📷 Photo</button><button data-a="post" style="margin-left:auto">Post</button></div></div>
+ <div id="posts"></div>
+</section>
+
+<section id="chat" hidden>
+ <select id="room" style="margin:0"></select>
+ <div id="msgs"></div>
+ <div class="row"><input id="mi" placeholder="Message…" maxlength="500"><button data-a="send">Send</button></div>
+</section>
+
+<section id="people" hidden>
+ <div class="card"><b>Find your contacts</b>
+  <p class="note">Numbers are matched as one-way hashes. Friends show up when the number on their profile matches one in your contacts.</p>
+  <div class="row"><button data-a="sync">📇 Sync phone contacts</button><button class="g" data-a="vcf">Import .vcf / .csv</button></div>
+  <div class="row"><input id="cn" placeholder="Name"><input id="ct" placeholder="Phone number" inputmode="tel"><button class="g" data-a="addc">Add</button></div></div>
+ <h3>Your contacts on Circle</h3><div class="card" id="on"></div>
+ <h3>Invite from contacts</h3><div class="card" id="off"></div>
+ <h3>All members</h3><div class="card" id="all"></div>
+</section>
+
+<section id="me" hidden>
+ <div class="card"><b id="mt">Your profile</b>
+  <input id="nn" placeholder="Display name" maxlength="40">
+  <input id="np" placeholder="Phone number for contact matching (optional)" inputmode="tel">
+  <p class="note">Your number is stored only as a hash.</p>
+  <div class="row"><button data-a="save">Save profile</button><button class="g" data-a="out">Log out</button></div></div>
+</section>
+
+<nav><button data-t="feed" class="on">🏠 Feed</button><button data-t="chat">💬 Chat</button><button data-t="people">👥 People</button><button data-t="me">🙂 Me</button></nav>
+<div id="toast"></div>
+<input type="file" id="pf" accept="image/*" hidden><input type="file" id="vf" accept=".vcf,.csv,.txt,text/*" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ====== PASTE YOUR SUPABASE VALUES HERE (Project Settings > API) ======
+const SUPABASE_URL='PASTE_PROJECT_URL';
+const SUPABASE_KEY='PASTE_ANON_PUBLIC_KEY';
+// ======================================================================
+const $=s=>document.querySelector(s);
+const H=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S,uid,user,P={},C=[],posts=[],M=[],room='general',chM=null,img=null,pend=null,A={ch:'email',md:'in',pw:true};
+const hue=s=>[...String(s)].reduce((a,c)=>a+c.charCodeAt(0),0)%360;
+const nm=id=>H(P[id]?.name||'Someone');
+const av=id=>`<span class="av" style="background:hsl(${hue(id)} 55% 45%)">${H((P[id]?.name||'?')[0].toUpperCase())}</span>`;
+const ago=t=>{const s=(Date.now()-Date.parse(t))/1000;return s<60?'now':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d'};
+const dm=i=>'dm:'+[uid,i].sort().join(':');
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',3500)}
+async function hp(n){const d=String(n||'').replace(/\D/g,'').slice(-10);if(d.length<7)return null;const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('circle:'+d));return[...new Uint8Array(b)].slice(0,8).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function show(t){document.querySelectorAll('section').forEach(s=>s.hidden=s.id!==t);document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));if(t==='chat')rMsgs()}
+function shrink(f){return createImageBitmap(f).then(bm=>new Promise(r=>{const k=Math.min(1,1080/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=bm.width*k;c.height=bm.height*k;c.getContext('2d').drawImage(bm,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.78)}))}
+const okImg=u=>String(u||'').startsWith(SUPABASE_URL);
+
+/* ---------- auth ---------- */
+function authUI(){const e=A.ch==='email';$('#id').placeholder=e?'you@example.com':'+2348012345678';$('#id').type=e?'email':'tel';$('#pw').hidden=!A.pw;$('#pw').autocomplete=A.md==='up'?'new-password':'current-password';$('#otp').hidden=!pend}
+function amsg(t){$('#amsg').textContent=t||''}
+async function go(){
+ const v=$('#id').value.trim(),k=A.ch==='email'?'email':'phone';if(!v)return amsg('Enter your '+k+'.');
+ if(pend){const {error}=await S.auth.verifyOtp({[k]:pend.v,token:$('#otp').value.trim(),type:pend.type});if(error)return amsg(error.message);pend=null;return}
+ let r;
+ if(A.pw){const pw=$('#pw').value;if(pw.length<6)return amsg('Password must be at least 6 characters.');
+  r=A.md==='up'?await S.auth.signUp({[k]:v,password:pw}):await S.auth.signInWithPassword({[k]:v,password:pw});
+  if(r.error)return amsg(r.error.message);
+  if(A.md==='up'&&!r.data.session){pend={v,type:k==='phone'?'sms':'signup'};authUI();amsg(k==='phone'?'We sent an SMS code. Enter it above.':'Check your email: enter the code or click the link.')}
+ }else{
+  r=await S.auth.signInWithOtp({[k]:v,options:{shouldCreateUser:A.md==='up'}});if(r.error)return amsg(r.error.message);
+  pend={v,type:k==='phone'?'sms':'email'};authUI();amsg('We sent you a code. Enter it above.')}
+}
+
+/* ---------- data ---------- */
+async function loadP(){const {data}=await S.from('profiles').select('*');P={};(data||[]).forEach(p=>P[p.id]=p);rRooms();rPeople();rPosts();rMsgs()}
+async function loadPosts(){const {data}=await S.from('posts').select('*').order('created_at',{ascending:false}).limit(50);posts=data||[];rPosts()}
+async function loadM(){const {data}=await S.from('messages').select('*').eq('room',room).order('created_at').limit(100);M=data||[];rMsgs()}
+function subM(){chM&&S.removeChannel(chM);loadM();chM=S.channel('m'+room+Date.now()).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room=eq.'+room},loadM).subscribe()}
+async function loadC(){const {data}=await S.from('contacts').select('h,n');C=data||[];rPeople()}
+
+function rPosts(){$('#posts').innerHTML=posts.map(p=>`<article class="card"><div class="hd">${av(p.uid)}<b>${nm(p.uid)}</b><small>${ago(p.created_at)}</small>${p.uid===uid?`<button class="lk" data-a="del" data-id="${p.id}">Delete</button>`:''}</div>${p.text?`<p>${H(p.text)}</p>`:''}${okImg(p.img)?`<img src="${H(p.img)}" alt="">`:''}<div class="ft"><button class="lk" data-a="like" data-id="${p.id}">${(p.likes||[]).includes(uid)?'♥':'♡'} ${(p.likes||[]).length||''}</button></div></article>`).join('')||'<p class="m">No posts yet. Share the first update!</p>'}
+function rMsgs(){const e=$('#msgs');e.innerHTML=M.map(m=>`<div class="b ${m.uid===uid?'me':''}">${m.uid===uid?'':`<small>${nm(m.uid)}</small>`}${H(m.text)}</div>`).join('')||'<p class="m">No messages yet. Say hi!</p>';e.scrollTop=e.scrollHeight}
+function rRooms(){const o=[['general','# Everyone'],...Object.keys(P).filter(i=>i!==uid).map(i=>[dm(i),'💬 '+(P[i].name||'Member')])];$('#room').innerHTML=o.map(([v,l])=>`<option value="${H(v)}">${H(l)}</option>`).join('');$('#room').value=room}
+function rPeople(){
+ const byH={};Object.values(P).forEach(p=>{if(p.ph&&p.id!==uid)byH[p.ph]=p.id});
+ const on=C.filter(c=>byH[c.h]),off=C.filter(c=>!byH[c.h]);
+ $('#on').innerHTML=on.map(c=>{const i=byH[c.h];return`<div class="pr">${av(i)}<div><b>${nm(i)}</b><small>${H(c.n)}</small></div><button data-a="dm" data-id="${i}">Message</button></div>`}).join('')||'<p class="m">No matches yet. Sync contacts above.</p>';
+ $('#off').innerHTML=off.map(c=>`<div class="pr"><div><b>${H(c.n)}</b></div><button class="g" data-a="inv">Invite</button></div>`).join('')||'<p class="m">Nobody to invite yet.</p>';
+ const o=Object.keys(P).filter(i=>i!==uid);
+ $('#all').innerHTML=o.map(i=>`<div class="pr">${av(i)}<div><b>${nm(i)}</b></div><button class="g" data-a="dm" data-id="${i}">Message</button></div>`).join('')||'<p class="m">You’re the first one here.</p>'}
+
+/* ---------- contacts ---------- */
+function parseC(t){const out=[];if(/BEGIN:VCARD/i.test(t)){t.split(/BEGIN:VCARD/i).forEach(c=>{const n=(c.match(/^FN[^:]*:(.+)$/im)||[])[1];[...c.matchAll(/^TEL[^:]*:(.+)$/gim)].forEach(m=>out.push({n:(n||'').trim(),tel:m[1]}))})}else t.split(/\r?\n/).forEach(l=>{const p=l.split(/[,;\t]/).map(x=>x.trim().replace(/^"|"$/g,''));const tel=p.find(x=>/^[+\d\s()-]+$/.test(x)&&x.replace(/\D/g,'').length>=7);if(tel)out.push({n:p.find(x=>x&&x!==tel)||'',tel})});return out}
+async function addC(list){const rows=[];for(const x of list.slice(0,500)){const h=await hp(x.tel);if(h&&!rows.some(r=>r.h===h))rows.push({h,n:x.n||'Contact'})}
+ if(rows.length){const {error}=await S.from('contacts').upsert(rows,{onConflict:'uid,h'});if(error)return toast(error.message)}await loadC();toast(rows.length+' contacts added')}
+async function sync(){if(!(navigator.contacts&&navigator.contacts.select))return toast('Contact picker isn’t available on this device. Import a file or add numbers below.');
+ try{const r=await navigator.contacts.select(['name','tel'],{multiple:true});await addC(r.flatMap(c=>(c.tel||[]).map(t=>({n:(c.name||[])[0],tel:t}))))}catch(e){toast('Couldn’t read contacts.')}}
+
+/* ---------- events ---------- */
+document.addEventListener('click',async e=>{
+ const nb=e.target.closest('nav button');if(nb)return show(nb.dataset.t);
+ const sg=e.target.closest('.seg button');
+ if(sg){const g=sg.parentElement;g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===sg));const v=sg.dataset.v;if(g.id==='s-ch')A.ch=v;if(g.id==='s-md')A.md=v;if(g.id==='s-pw')A.pw=v==='1';pend=null;amsg();authUI();return}
+ const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+ try{
+ if(a==='go')await go();
+ else if(a==='photo')$('#pf').click();
+ else if(a==='post'){const text=$('#txt').value.trim();if(!text&&!img)return;let url=null;
+  if(img){const path=uid+'/'+Date.now()+'.jpg';const u=await S.storage.from('images').upload(path,img,{contentType:'image/jpeg'});if(u.error)throw u.error;url=S.storage.from('images').getPublicUrl(path).data.publicUrl}
+  const {error}=await S.from('posts').insert({text,img:url});if(error)throw error;$('#txt').value='';img=null;$('#pv').innerHTML='';loadPosts()}
+ else if(a==='del'){await S.from('posts').delete().eq('id',id);loadPosts()}
+ else if(a==='like'){await S.rpc('toggle_like',{pid:+id});loadPosts()}
+ else if(a==='send'){const text=$('#mi').value.trim();if(!text)return;$('#mi').value='';const {error}=await S.from('messages').insert({room,text});if(error)throw error;loadM()}
+ else if(a==='dm'){room=dm(id);rRooms();subM();show('chat')}
+ else if(a==='sync')sync();
+ else if(a==='vcf')$('#vf').click();
+ else if(a==='addc'){const tl=$('#ct').value.trim();if(!tl)return;await addC([{n:$('#cn').value.trim(),tel:tl}]);$('#cn').value=$('#ct').value=''}
+ else if(a==='inv'){const d={title:'Circle',text:'Join me on Circle!',url:location.href};if(navigator.share)navigator.share(d).catch(()=>{});else{navigator.clipboard?.writeText(location.href);toast('Link copied. Send it to them!')}}
+ else if(a==='save'){const name=$('#nn').value.trim();if(!name)return toast('Please enter a name.');const ph=await hp($('#np').value||user.phone);
+  const {error}=await S.from('profiles').upsert({id:uid,name,ph:ph||null});if(error)throw error;toast('Profile saved');await loadP();show('feed')}
+ else if(a==='out'){await S.auth.signOut()}
+ }catch(err){toast(err.message||'Something went wrong. Please try again.')}
+});
+$('#room').onchange=e=>{room=e.target.value;subM()};
+$('#mi').onkeydown=e=>{if(e.key==='Enter')document.querySelector('[data-a=send]').click()};
+$('#pf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{img=await shrink(f);$('#pv').innerHTML=`<img src="${URL.createObjectURL(img)}" alt="">`}catch(x){toast('Couldn’t read that image.')}};
+$('#vf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const l=parseC(await f.text());l.length?addC(l):toast('No phone numbers found.')};
+
+/* ---------- start ---------- */
+async function onSession(s){
+ if(!s){uid=null;document.body.classList.add('out');pend=null;authUI();return show('auth')}
+ user=s.user;uid=user.id;document.body.classList.remove('out');
+ await loadP();await loadC();
+ if(!P[uid]){$('#mt').textContent='Welcome! Set up your profile';$('#np').value=user.phone?'+'+user.phone:'';document.body.classList.add('out');show('me')}
+ else{$('#nn').value=P[uid].name;show('feed')}
+ loadPosts();subM();
+ S.channel('live').on('postgres_changes',{event:'*',schema:'public',table:'posts'},loadPosts).on('postgres_changes',{event:'*',schema:'public',table:'profiles'},loadP).subscribe();
+}
+(function(){
+ if(SUPABASE_URL.startsWith('PASTE')){show('auth');return amsg('Setup needed: paste your Supabase URL and key at the top of index.html.')}
+ S=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+ let last=null;S.auth.onAuthStateChange((ev,s)=>{const k=s?.user?.id||null;if(k===last&&ev!=='SIGNED_OUT')return;last=k;onSession(s)});
+})();
+</script></body></html>
