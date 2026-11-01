@@ -190,6 +190,6 @@ window.addEventListener('error',e=>oops(e.message));window.addEventListener('unh
  if(SUPABASE_URL.startsWith('PASTE')){show('auth');return amsg('Setup needed: paste your Supabase URL and key at the top of index.html.')}
  if(!window.supabase){show('auth');return amsg('Couldn’t load the sign-in library. Try another network, then reload.')}
  try{S=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){show('auth');return amsg('Error: '+e.message)}
- let last=null;S.auth.onAuthStateChange((ev,s)=>{const k=s?.user?.id||null;if(k===last&&ev!=='SIGNED_OUT')return;last=k;onSession(s)});
+ let last;S.auth.onAuthStateChange((ev,s)=>{const k=s?.user?.id||null;if(k===last&&ev!=='SIGNED_OUT')return;last=k;onSession(s)});
 })();
 </script></body></html>
